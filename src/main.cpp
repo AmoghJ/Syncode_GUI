@@ -1,14 +1,20 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-float t = 0;
+#include "Error.h"
+#include "Shaders.h"
+#include "Rectangle.h"
 
-static void glfw_error_callback(int error, const char* description)
-{
-	fprintf(stderr, "Glfw Error %d: %s\n", error, description);
-}
+/*Basic OpenGL setup code
+Draws rounded rectangle*/
+
 
 int main(int, char**)
 {
@@ -18,17 +24,22 @@ int main(int, char**)
 	if (!glfwInit())
 		return 1;
 
-	const char* glsl_version = "#version 130";
+	//Setup window with OpenGL 3.3 Version using Core Profile
+
+	//const char* glsl_version = "#version 130";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Create window with graphics context
-	GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1280, 720, "Syncode GUI", NULL, NULL);
 	if (window == NULL)
 		return 1;
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1); // Enable vsync
+	glfwSwapInterval(1); // Enable vsync - limits to screen refresh rate
 
+
+	//Check for any errors so far
 	bool err = glewInit() != GLEW_OK;
 
 	if (err)
@@ -38,36 +49,38 @@ int main(int, char**)
 	}
 
 
+	
+	createRectangleShader();
+	//setRectangleVertices();
+
+	Rectangle r1;
+
+	Camera::GetInstance()->setPosition(glm::vec3(640.0f, 360.0f, 0.0f));
+	glfwSetKeyCallback(window, Camera::GetInstance()->key_callback);
+
 	// Main loop
 	while (!glfwWindowShouldClose(window))
 	{
+
+		//This waits for user input or updates after 1.0 secs
 		glfwWaitEventsTimeout(1.0f);
 
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		glClearColor(0.0f,0.0f,0.0f,1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		//TODO: Not sure if viewport is depecrated or not
+		//GLCall(glViewport(0, 0, display_w, display_h));
+		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		glPushMatrix();
+		Camera::GetInstance()->update();
 
-		glTranslatef(0.0f, 0.0f, 0.0f);
+		r1.render();
 
-		glBegin(GL_TRIANGLES);
-		glColor3f(0.1, 0.2, 0.3);
-		glVertex3f(0, 0, 0);
-		glVertex3f(1, 0, 0);
-		glVertex3f(0, 1, 0);
-		glEnd();
-		
-		t = t + 0.1;
-
-		glPopMatrix();
-
+		//Swap forward and backward buffer
 		glfwSwapBuffers(window);
 
 	}
 
+	deleteRectangleShader();
+
+	//Cleanup
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
