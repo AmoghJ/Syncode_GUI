@@ -2,7 +2,7 @@
 
 #include "glm.hpp"
 #include "gtc/matrix_transform.hpp"
-
+#include <GLFW/glfw3.h>
 #include <iostream>
 
 class Camera {
@@ -10,20 +10,12 @@ protected:
 
 	static Camera* camera_;
 
-	Camera() {
-		position = glm::vec3(0.0f);
-		zoom = glm::vec3(1.0f);
-
-		//Setup projection matrix with 16:9 aspect ratio
-		//TODO: Make dynamic screen size
-		proj = glm::ortho(0.0f, 1280.0f, 720.0f, 0.0f, -1.0f, 1.0f);
-		view = glm::scale(glm::translate(glm::mat4(1.0f), position),zoom);
-		mvp = proj*view;
-	}
+	Camera();
 
 public:
 	glm::vec3 position;
 	glm::vec3 zoom;
+	glm::vec3 center;
 
 	glm::mat4 proj;
 	glm::mat4 view;
@@ -44,69 +36,16 @@ public:
 
 	static Camera* GetInstance();
 
-	void update() {
-		view = glm::scale(glm::translate(glm::mat4(1.0f), position),zoom);
-		mvp = proj * view;
-	}
+	void update();
 
-	glm::mat4 getProjectionMatrix() {
-		return proj;
-	}
+	glm::mat4 getProjectionMatrix();
 
-	glm::mat4 getMVP() {
-		return mvp;
-	}
-
-	glm::mat4 getViewMatrix() {
-		return view;
-	}
-
-	void setPosition(glm::vec3 _p) {
-		position = _p;
-	}
+	glm::mat4 getMVP();
+	glm::mat4 getViewMatrix();
+	void setPosition(glm::vec3 _p);
 
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };
 
-Camera* Camera::camera_ = nullptr;
 
-Camera* Camera::GetInstance()
-{
-	/**
-	 * This is a safer way to create an instance. instance = new Singleton is
-	 * dangeruous in case two instance threads wants to access at the same time
-	 */
-	if (camera_ == nullptr) {
-		camera_ = new Camera();
-	}
-	return camera_;
-}
 
-void Camera::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-
-	if (key == GLFW_KEY_W) {
-		GetInstance()->position.y -= 3.0f;
-	}
-
-	if (key == GLFW_KEY_S) {
-		GetInstance()->position.y += 3.0f;
-	}
-
-	if (key == GLFW_KEY_A) {
-		GetInstance()->position.x -= 3.0f;
-	}
-
-	if (key == GLFW_KEY_D) {
-		GetInstance()->position.x += 3.0f;
-	}
-
-	if (key == GLFW_KEY_Q) {
-		GetInstance()->zoom += glm::vec3(0.1f);
-	}
-
-	if (key == GLFW_KEY_E) {
-		GetInstance()->zoom -= glm::vec3(0.1f);
-	}
-
-	std::cout << GetInstance()->getViewMatrix()[0][0] << " " << GetInstance()->getViewMatrix()[1][1] << std::endl;
-}

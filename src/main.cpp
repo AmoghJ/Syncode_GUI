@@ -5,13 +5,19 @@
 #include <fstream>
 #include <sstream>
 
+#include <chrono>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+
 #include "Error.h"
 #include "Shaders.h"
+#include "Camera.h"
+#include "RectangleRenderer.h"
 #include "Rectangle.h"
 
+#include "gtc/random.hpp"
 /*Basic OpenGL setup code
 Draws rounded rectangle*/
 
@@ -48,37 +54,60 @@ int main(int, char**)
 		return 1;
 	}
 
+	//Enable blending for transparent pixels
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	
-	createRectangleShader();
+
 	//setRectangleVertices();
 
-	Rectangle r1;
+	std::vector<Rectangle*> rects;
 
-	Camera::GetInstance()->setPosition(glm::vec3(640.0f, 360.0f, 0.0f));
+	for (int i = 0; i < 10000; i++) {
+		Rectangle* rect = RectangleRenderer::GetInstance()->addRectangle(glm::vec2(glm::linearRand(-1280.0f*4,1280.0f*4),glm::linearRand(-720.0f*4,720.0f*4)), glm::vec2(glm::linearRand(100.0f,500.0f), glm::linearRand(100.0f,500.0f)), glm::linearRand(0.0f,50.0f), glm::linearRand(0.0f, 50.0f), glm::linearRand(0.0f, 50.0f), glm::linearRand(0.0f, 50.0f), glm::vec3(glm::linearRand(0.0f,1.0f), glm::linearRand(0.0f, 1.0f), glm::linearRand(0.0f, 1.0f)));
+
+		rects.push_back(rect);
+	}
+
+	RectangleRenderer::GetInstance()->addRectangle(glm::vec2(0.0f), glm::vec2(400.0f, 200.0f), 5.0f, 5.0f, 5.0f, 5.0f, glm::vec3(1.0f));
+	//RectangleRenderer::GetInstance()->addRectangle(glm::vec2(-50.0f,-50.0f), glm::vec2(50.0f, 50.0f), 5.0f, 5.0f, 5.0f, 5.0f, glm::vec3(1.00f));
+
+	//Camera::GetInstance()->setPosition(glm::vec3(640.0f, 360.0f, 0.0f));
 	glfwSetKeyCallback(window, Camera::GetInstance()->key_callback);
 
+	
+
+	float t = 0;
 	// Main loop
 	while (!glfwWindowShouldClose(window))
 	{
 
 		//This waits for user input or updates after 1.0 secs
 		glfwWaitEventsTimeout(1.0f);
+		//glfwPollEvents();
+
+		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
 		//TODO: Not sure if viewport is depecrated or not
 		//GLCall(glViewport(0, 0, display_w, display_h));
-		GLCall(glClear(GL_COLOR_BUFFER_BIT));
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 		Camera::GetInstance()->update();
 
-		r1.render();
+		RectangleRenderer::GetInstance()->render();
+
+		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> time_span = t2 - t1;
+		std::cout << time_span.count() << " ms " << 1000.0f/time_span.count() << " fps " << std::endl;
 
 		//Swap forward and backward buffer
 		glfwSwapBuffers(window);
 
+		t += 0.1f;
+
 	}
 
-	deleteRectangleShader();
+	RectangleRenderer::GetInstance()->deinit();
 
 	//Cleanup
 	glfwDestroyWindow(window);

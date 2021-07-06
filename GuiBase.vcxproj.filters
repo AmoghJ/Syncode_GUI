@@ -894,7 +894,7 @@
     <ClInclude Include="libs\glm\gtx\wrap.hpp">
       <Filter>glm\gtx</Filter>
     </ClInclude>
-    <ClInclude Include="Rectangle.h">
+    <ClInclude Include="RectangleRenderer.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="Shaders.h">
@@ -904,6 +904,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Rectangle.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -916,6 +919,15 @@
     </ClCompile>
     <ClCompile Include="libs\glm\detail\glm.cpp">
       <Filter>glm\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="RectangleRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Rectangle.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

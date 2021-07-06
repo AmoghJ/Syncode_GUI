@@ -8,29 +8,38 @@ layout(location = 3) in vec4 position4;
 layout(location = 4) in vec4 corner;
 layout(location = 5) in vec4 edge;
 
+layout(location = 6) in vec4 instance1;
+layout(location = 7) in vec4 instance2;
+layout(location = 8) in vec3 instance3;
+
 uniform mat4 u_MVP;
 uniform mat4 u_MV;
 
-uniform vec4 cR;
-uniform vec2 s;
-uniform float mn;
-
 out vec4 edge_position;
 out float edge_width;
+out vec3 v_color;
 
 void main() {
+
+	//Need to think about model view matrix?
+	vec2 p = vec2(instance1.xy);
+	vec2 s = vec2(instance1.zw);
+	vec4 cR = instance2;
+	float mn = min(s.x, s.y) / 2.0f;
+
+	v_color = instance3;
 
 	//Calculates vertex position to draw triangles
 	vec2 vertex;
 	vertex.x = cR.x * position1.x + cR.y * position1.y + cR.z * position1.z + cR.w * position1.w + s.x * position2.x + s.y * position2.y + mn * position2.z;
 	vertex.y = cR.x * position3.x + cR.y * position3.y + cR.z * position3.z + cR.w * position3.w + s.x * position4.x + s.y * position4.y + mn * position4.z;
-	gl_Position = u_MVP *vec4(vertex.x,vertex.y,0.0f,1.0f);
+	gl_Position = u_MVP *vec4(vertex.x+p.x,vertex.y+p.y,0.0f,1.0f);
 
 	//Calculates center of edge for circle or boundary of rectangle to pass to fragment shader
 	vec2 e;
 	e.x = corner.x * cR.x + corner.y * (s.x-cR.y) + corner.z * (s.x-cR.z) + corner.w * cR.w + edge.x*vertex.x + edge.y*vertex.x + edge.z*mn + edge.w*(s.x - mn);
 	e.y = corner.x * cR.x + corner.y * cR.y + corner.z *( s.y-cR.z) + corner.w * (s.y-cR.w) + edge.x*mn + edge.y*(s.y-mn) + edge.z*vertex.y + edge.w*vertex.y;
-	edge_position = u_MV*vec4(e.x,e.y,0.0f,1.0f);
+	edge_position = u_MV*vec4(e.x+p.x,e.y+p.y,0.0f,1.0f);
 
 	//Passes radius of corner or edge width threshold to fragment
 	edge_width = u_MV[0][0]*(corner.x * cR.x + corner.y * cR.y + corner.z * cR.z + corner.w * cR.w + edge.x*mn + edge.y*(s.y-mn) + edge.z*mn + edge.w*(s.x-mn));
@@ -45,6 +54,7 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 
 in vec4 edge_position;
 in float edge_width;
+in vec3 v_color;
 
 void main() {
 
@@ -55,5 +65,6 @@ void main() {
 	//For Aliasing
 	float pixel_opacity = clamp(0.5 - distance_to_edge, 0, 1);
 
-	color = vec4(0.4f * pixel_opacity, 0.4f * pixel_opacity, 0.4f * pixel_opacity, 1.0f);
+	color = vec4(v_color.x, v_color.y, v_color.z, 1.0f * pixel_opacity);
+	//color = vec4(1.0f);
 };

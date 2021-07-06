@@ -11,7 +11,7 @@
 
 //Error handling macros and functions
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #define GLCall(x) GLClearError();\
